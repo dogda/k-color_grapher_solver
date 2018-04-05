@@ -46,6 +46,7 @@ function Domain(name, values){
   };
 }
 
+//Theses are binary constraints
 function DiffConstraint(name, scope){
   this.name = name;
   this.scope = scope;
@@ -86,22 +87,26 @@ function createCSPFromFile(file){
 
   fs.readFile(file, function(err, data){
     parser.parseString(data, function(err,result){
-
       for(var i = 0; i < result.instance.variables[0].variable.length; i++){
-        //Make Actual Domain
-        var domain = new Domain("Temp",[1,2,3]);
+        var domName = result.instance.variables[0].variable[i]['$'].domain;
+
+        //Realize that this is not a perfect solution
+        var values = result.instance.domains[0].domain.find(function(e){
+          return e["$"].name = domName;
+        })['_'].split("..");
+
+        var domain = new Domain(domName, values);
         variables[i] = new Variable(result.instance.variables[0].variable[i]['$'].name, domain);
-        console.log(variables[i].toString());
       }
 
       for(var i = 0; i < result.instance.constraints[0].constraint.length; i++){
         var scope = result.instance.constraints[0].constraint[i]['$'].scope.split(" ");
         constraints[i] = new DiffConstraint(result.instance.constraints[0].constraint[i]['$'].name, scope);
-        //console.log(constraints[i].toString());
       }
+
+      return new CSP(result.instance.presentation[0]["$"].name, variables, constraints);
     })
   })
-
 }
 
 createCSPFromFile("./testProblems/ColK4-conflicts.xml");
