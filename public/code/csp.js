@@ -1,5 +1,7 @@
 module.exports = {
   createCSPFromFile: createCSPFromFile
+//  CSP: CSP,
+//  Variable: Variable
 };
 
 var xml2js = require('xml2js');
@@ -66,27 +68,24 @@ function CSP(name, variables, constraints){
   this.constraints = constraints;
 
   this.hasEdge = function(a, b){
-    if(a > this.variables.length || b > this.variables.length){
-      return false;
-    }
-
     var edge = this.constraints.find(function(e){
-      return (e.inScope(a) && e.inScope(b));
+      return (e.inScope(a.name) && e.inScope(b.name));
     });
-
     return typeof edge != 'undefined';
   }
 }
 
-function createCSPFromFile(file){
+function createCSPFromFile(file, callback){
 
   var parser = xml2js.Parser();
 
   var variables = [];
   var constraints = [];
 
+
   fs.readFile(file, function(err, data){
     parser.parseString(data, function(err,result){
+      //console.log(result);
       for(var i = 0; i < result.instance.variables[0].variable.length; i++){
         var domName = result.instance.variables[0].variable[i]['$'].domain;
 
@@ -102,11 +101,12 @@ function createCSPFromFile(file){
       for(var i = 0; i < result.instance.constraints[0].constraint.length; i++){
         var scope = result.instance.constraints[0].constraint[i]['$'].scope.split(" ");
         constraints[i] = new DiffConstraint(result.instance.constraints[0].constraint[i]['$'].name, scope);
+
       }
 
-      return new CSP(result.instance.presentation[0]["$"].name, variables, constraints);
+      callback( new CSP(result.instance.presentation[0]["$"].name, variables, constraints));
     })
   })
 }
 
-createCSPFromFile("./testProblems/ColK4-conflicts.xml");
+//createCSPFromFile("./testProblems/ColK4-conflicts.xml");
