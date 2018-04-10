@@ -1,7 +1,7 @@
 module.exports = {
-  createCSPFromFile: createCSPFromFile
-//  CSP: CSP,
-//  Variable: Variable
+  createCSPFromFile: createCSPFromFile,
+  CSP: CSP,
+  getNetwork: getNetwork
 };
 
 var xml2js = require('xml2js');
@@ -30,7 +30,7 @@ function Domain(name, values){
   this.values = values;
 
   this.clone = function(){
-    return JSON.parse(JSON.stringify(this));
+    return new Domain(this.name, this.values);
   };
 
   this.remove = function(value){
@@ -44,7 +44,7 @@ function Domain(name, values){
       }
     }
 
-    return result;
+    this.values = result;
   };
 }
 
@@ -75,13 +75,33 @@ function CSP(name, variables, constraints){
   }
 }
 
-function createCSPFromFile(file, callback){
+function getNetwork(csp){
+  var network = {};
 
+  var nodes = [];
+  for(var i = 0; i < csp.variables.length; i++){
+    nodes[i] = {
+      id: csp.variables[i].name
+    }
+  }
+  var links = [];
+  for(var i = 0; i < csp.constraints.length; i++){
+    links[i] = {
+      sid: csp.constraints[i].scope[0],
+      tid: csp.constraints[i].scope[1]
+    }
+  }
+
+  network.nodes = nodes;
+  network.links = links;
+  return network;
+}
+
+function createCSPFromFile(file, callback){
   var parser = xml2js.Parser();
 
   var variables = [];
   var constraints = [];
-
 
   fs.readFile(file, function(err, data){
     parser.parseString(data, function(err,result){
@@ -90,9 +110,15 @@ function createCSPFromFile(file, callback){
         var domName = result.instance.variables[0].variable[i]['$'].domain;
 
         //Realize that this is not a perfect solution
-        var values = result.instance.domains[0].domain.find(function(e){
+        var range = result.instance.domains[0].domain.find(function(e){
           return e["$"].name = domName;
         })['_'].split("..");
+
+        var values = [];
+
+        for(var j = 0; j < parseInt(range[1]); j++){
+          values[j] = parseInt(range[0])+j;
+        }
 
         var domain = new Domain(domName, values);
         variables[i] = new Variable(result.instance.variables[0].variable[i]['$'].name, domain);
@@ -109,4 +135,4 @@ function createCSPFromFile(file, callback){
   })
 }
 
-//createCSPFromFile("./testProblems/ColK4-conflicts.xml");
+
