@@ -5,7 +5,7 @@ module.exports = {
 };
 
 var xml2js = require('xml2js');
-var fs = require('fs');
+var fs = require('browserify-fs');
 
 function Variable(name, domain){
   this.name = name;
@@ -98,14 +98,18 @@ function getNetwork(csp){
 }
 
 function createCSPFromFile(file, callback){
+
+
+
   var parser = xml2js.Parser();
 
   var variables = [];
   var constraints = [];
 
   fs.readFile(file, function(err, data){
+    console.log(data);
     parser.parseString(data, function(err,result){
-      //console.log(result);
+
       for(var i = 0; i < result.instance.variables[0].variable.length; i++){
         var domName = result.instance.variables[0].variable[i]['$'].domain;
 

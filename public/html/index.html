@@ -5,11 +5,13 @@
     <title></title>
 </head>
 
-<body>
+<body style="background: green">
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <div id="app">
-    <d3-network :net-nodes="nodes" :net-links="links" :options="options">
+    <d3-network :net-nodes="graph.nodes" :net-links="graph.links" :options="options">
     </d3-network>
 </div>
-</body>body
+
+<script src="./vueBundle.js"></script>
+</body>
 </html>

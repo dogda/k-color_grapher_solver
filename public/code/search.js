@@ -21,7 +21,7 @@ function clone(obj) {
   throw new Error("This type isn't supported");
 }
 
-CSPUTILS.createCSPFromFile("./testProblems/ColAustralia-conflicts.xml", function(cspTemp){
+CSPUTILS.createCSPFromFile("./public/testProblems/ColAustralia-conflicts.xml", function(cspTemp){
   function Backtrack(csp){
     this.consistent = true;
     this.checking = false;
