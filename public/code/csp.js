@@ -1,11 +1,14 @@
 module.exports = {
   createCSPFromFile: createCSPFromFile,
+  //createCSPFromURL: createCSPFromURL,
   CSP: CSP,
-  getNetwork: getNetwork
+  getNetwork: getNetwork,
+  cspFromNetwork: cspFromNetwork
 };
 
 var xml2js = require('xml2js');
-var fs = require('browserify-fs');
+//var $ = require('jquery');
+var fs = require('fs');
 
 function Variable(name, domain){
   this.name = name;
@@ -87,6 +90,7 @@ function getNetwork(csp){
   var links = [];
   for(var i = 0; i < csp.constraints.length; i++){
     links[i] = {
+      id : csp.constraints[i].name,
       sid: csp.constraints[i].scope[0],
       tid: csp.constraints[i].scope[1]
     }
@@ -97,46 +101,68 @@ function getNetwork(csp){
   return network;
 }
 
+function cspFromNetwork(network, domain){
+  var variables = [];
+  var constraints = [];
+  for(var i = 0; i < network.nodes.length; i++){
+    variables[i] = new Variable(network.nodes[i].id, domain.clone);
+  }
+
+  for(var i = 0; i < network.links.length; i++){
+    var link = network.links[i];
+    constraints[i] = new DiffConstraint(link.id, [link.sid,link.tid]);
+  }
+  return new CSP("Welp",variables,constraints);
+}
+
 function createCSPFromFile(file, callback){
+  fs.readFile(file, function(err, data){
+    createCSPFromXML(data,callback);
+  });
+}
 
+/*function createCSPFromURL(URL, callback){
+  $.get(URL, function(data){
+    createCSPFromXML(data,callback);
+  });
+} */
 
-
+function createCSPFromXML(XMLString, callback){
   var parser = xml2js.Parser();
 
   var variables = [];
   var constraints = [];
+  console.log(XMLString);
+  parser.parseString(XMLString, function(err,result){
+    console.log(result);
+    for(var i = 0; i < result.instance.variables[0].variable.length; i++){
+      var domName = result.instance.variables[0].variable[i]['$'].domain;
 
-  fs.readFile(file, function(err, data){
-    console.log(data);
-    parser.parseString(data, function(err,result){
+      //Realize that this is not a perfect solution
+      var range = result.instance.domains[0].domain.find(function(e){
+        return e["$"].name = domName;
+      })['_'].split("..");
 
-      for(var i = 0; i < result.instance.variables[0].variable.length; i++){
-        var domName = result.instance.variables[0].variable[i]['$'].domain;
+      var values = [];
 
-        //Realize that this is not a perfect solution
-        var range = result.instance.domains[0].domain.find(function(e){
-          return e["$"].name = domName;
-        })['_'].split("..");
-
-        var values = [];
-
-        for(var j = 0; j < parseInt(range[1]); j++){
-          values[j] = parseInt(range[0])+j;
-        }
-
-        var domain = new Domain(domName, values);
-        variables[i] = new Variable(result.instance.variables[0].variable[i]['$'].name, domain);
+      for(var j = 0; j < parseInt(range[1]); j++){
+        values[j] = parseInt(range[0])+j;
       }
 
-      for(var i = 0; i < result.instance.constraints[0].constraint.length; i++){
-        var scope = result.instance.constraints[0].constraint[i]['$'].scope.split(" ");
-        constraints[i] = new DiffConstraint(result.instance.constraints[0].constraint[i]['$'].name, scope);
+      var domain = new Domain(domName, values);
+      variables[i] = new Variable(result.instance.variables[0].variable[i]['$'].name, domain);
+    }
 
-      }
+    for(var i = 0; i < result.instance.constraints[0].constraint.length; i++){
+      var scope = result.instance.constraints[0].constraint[i]['$'].scope.split(" ");
+      constraints[i] = new DiffConstraint(result.instance.constraints[0].constraint[i]['$'].name, scope);
 
-      callback( new CSP(result.instance.presentation[0]["$"].name, variables, constraints));
-    })
+    }
+
+    callback( new CSP(result.instance.presentation[0]["$"].name, variables, constraints));
   })
 }
 
-
+createCSPFromFile("./public/testProblems/ColAustralia-conflicts.xml", function(csp){
+  console.log(getNetwork(csp));
+});
