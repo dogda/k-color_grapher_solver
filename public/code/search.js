@@ -4,6 +4,13 @@ module.exports = {
 
 const CSPUTILS = require("./csp.js");
 
+var colors = {
+  1 : "red",
+  2 : "blue",
+  3 : "green",
+  4 : "yellow"
+};
+
 function clone(obj) {
   var copy;
   if (null == obj || "object" != typeof obj) return obj;
@@ -26,15 +33,17 @@ function clone(obj) {
 }
 
 function Backtrack(csp){
+  var _this = this;
   this.consistent = true;
   this.checking = false;
   this.status = "unknown";
   this.index = 1;
   this.variables = [];
+  this.csp = csp;
 
-  for(var i = 0; i < csp.variables.length + 1; i++){
+  for(var i = 0; i < this.csp.variables.length + 1; i++){
     if(i != 0){
-      this.variables[i] = csp.variables[i-1];
+      this.variables[i] = clone(this.csp.variables[i-1]);
     } else {
       this.variables[i] = undefined;
     }
@@ -63,7 +72,7 @@ function Backtrack(csp){
     _this.path[this.index] = this.variables[this.index].currentDomain.values[0];
 
     for (var h = 1; h < this.index && _this.consistent; h++) {
-      if (csp.hasEdge(_this.variables[this.index], _this.variables[h]) && _this.path[this.index] == _this.path[h]) {
+      if (this.csp.hasEdge(_this.variables[this.index], _this.variables[h]) && _this.path[this.index] == _this.path[h]) {
         _this.variables[this.index].currentDomain.remove(_this.path[this.index]);
         _this.consistent = false;
       }
@@ -97,10 +106,56 @@ function Backtrack(csp){
       }
     }
     console.log(this.path);
+  };
+
+  this.solve = function(){
+    while(this.status == "unknown"){
+      this.next();
+    }
+  };
+
+  this.reset = function(){
+    for(var i = 0; i < this.csp.variables.length + 1; i++){
+      if(i != 0){
+        this.variables[i] = clone(this.csp.variables[i-1]);
+      } else {
+        this.variables[i] = undefined;
+      }
+    }
+    this.consistent = true;
+    this.checking = false;
+    this.status = "unknown";
+    this.index = 1;
+    this.path = new Array(this.variables.length);
+  };
+
+  this.getColors = function(){
+    var colorsResult = [];
+    for(var i = 0; i < _this.csp.variables.length; i++){
+      var index = _this.variables.findIndex(function(v){
+        if(typeof v != 'undefined'){
+          return v.name == _this.csp.variables[i].name;
+        } else {
+          return false;
+        }
+      });
+
+      var variableColor = "grey";
+
+      if(typeof _this.path[index] != 'undefined'){
+         variableColor = colors[_this.path[index]]
+      }
+
+      colorsResult[i] = {
+        id: _this.csp.variables[i].name,
+        _color: variableColor
+      }
+    }
+    return colorsResult;
   }
 }
 
-function testCSP(){
+/*function testCSP(){
   CSPUTILS.createCSPFromFile("./public/testProblems/ColAustralia-conflicts.xml", function(cspTemp){
     var bt = new Backtrack(cspTemp);
     var m = 0;
@@ -111,4 +166,4 @@ function testCSP(){
   });
 }
 
-testCSP();
+testCSP();*/

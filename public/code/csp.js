@@ -1,14 +1,15 @@
 module.exports = {
-  createCSPFromFile: createCSPFromFile,
+  //createCSPFromFile: createCSPFromFile,
   //createCSPFromURL: createCSPFromURL,
   CSP: CSP,
-  getNetwork: getNetwork,
+  Domain:Domain,
+  //getNetwork: getNetwork,
   cspFromNetwork: cspFromNetwork
 };
 
 var xml2js = require('xml2js');
 //var $ = require('jquery');
-var fs = require('fs');
+//var fs = require('fs');
 
 function Variable(name, domain){
   this.name = name;
@@ -76,9 +77,32 @@ function CSP(name, variables, constraints){
     });
     return typeof edge != 'undefined';
   }
+
+  this.getNetwork = function(){
+    var network = {};
+
+    var nodes = [];
+    for(var i = 0; i < this.variables.length; i++){
+      nodes[i] = {
+        id: this.variables[i].name
+      }
+    }
+    var links = [];
+    for(var i = 0; i < this.constraints.length; i++){
+      links[i] = {
+        id : this.constraints[i].name,
+        sid: this.constraints[i].scope[0],
+        tid: this.constraints[i].scope[1]
+      }
+    }
+
+    network.nodes = nodes;
+    network.links = links;
+    return network;
+  }
 }
 
-function getNetwork(csp){
+/*function getNetwork(csp){
   var network = {};
 
   var nodes = [];
@@ -99,27 +123,29 @@ function getNetwork(csp){
   network.nodes = nodes;
   network.links = links;
   return network;
-}
+}*/
 
 function cspFromNetwork(network, domain){
   var variables = [];
   var constraints = [];
   for(var i = 0; i < network.nodes.length; i++){
-    variables[i] = new Variable(network.nodes[i].id, domain.clone);
+    variables[i] = new Variable(network.nodes[i].id, domain.clone());
   }
 
   for(var i = 0; i < network.links.length; i++){
     var link = network.links[i];
     constraints[i] = new DiffConstraint(link.id, [link.sid,link.tid]);
   }
-  return new CSP("Welp",variables,constraints);
+  var csp = new CSP("Current",variables,constraints);
+  console.log(csp);
+  return csp ;
 }
 
-function createCSPFromFile(file, callback){
+/*function createCSPFromFile(file, callback){
   fs.readFile(file, function(err, data){
     createCSPFromXML(data,callback);
   });
-}
+}*/
 
 /*function createCSPFromURL(URL, callback){
   $.get(URL, function(data){
@@ -156,13 +182,12 @@ function createCSPFromXML(XMLString, callback){
     for(var i = 0; i < result.instance.constraints[0].constraint.length; i++){
       var scope = result.instance.constraints[0].constraint[i]['$'].scope.split(" ");
       constraints[i] = new DiffConstraint(result.instance.constraints[0].constraint[i]['$'].name, scope);
-
     }
 
     callback( new CSP(result.instance.presentation[0]["$"].name, variables, constraints));
   })
 }
 
-createCSPFromFile("./public/testProblems/ColAustralia-conflicts.xml", function(csp){
+/*createCSPFromFile("./public/testProblems/ColAustralia-conflicts.xml", function(csp){
   console.log(getNetwork(csp));
-});
+});*/
