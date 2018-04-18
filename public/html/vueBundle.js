@@ -10663,9 +10663,22 @@ function DiffConstraint(name, scope){
 }
 
 function CSP(name, variables, constraints){
+
   this.name = name;
   this.variables = variables;
   this.constraints = constraints;
+
+  this.getNeighbors = function(variable){
+    var result = [];
+    this.constraints.forEach(function(c){
+      if(c.scope[0] == variable.name){
+        result.push(c.scope[1]);
+      } else if(c.scope[1] == variable.name){
+        result.push(c.scope[0]);
+      }
+    })
+    return result;
+  }
 
   this.hasEdge = function(a, b){
     var edge = this.constraints.find(function(e){
@@ -10787,6 +10800,7 @@ function createCSPFromXML(XMLString, callback){
 /*createCSPFromFile("./public/testProblems/ColAustralia-conflicts.xml", function(csp){
   console.log(getNetwork(csp));
 });*/
+
 },{"xml2js":37}],61:[function(require,module,exports){
 module.exports = {
   Backtrack: Backtrack
@@ -10800,6 +10814,15 @@ var colors = {
   3 : "green",
   4 : "yellow"
 };
+
+function degree(a,b,csp){
+  if(csp.getNeighbors(b).length - csp.getNeighbors(a).length != 0){
+      return csp.getNeighbors(b).length - csp.getNeighbors(a).length;
+  } else {
+    //This compares variables lexiographically
+    return (a.name<b.name?-1:(a.name>b.name?1:0));
+  }
+}
 
 function clone(obj) {
   var copy;
@@ -10830,15 +10853,17 @@ function Backtrack(csp, heuristic){
   this.index = 1;
   this.variables = [];
   this.csp = csp;
+  this.brelaz = false;
+
   if(typeof heuristic != "undefined"){
     this.heuristic = heuristic;
   } else {
-    this.heuristic = function(a,b){
+    this.heuristic = function(a,b,csp){
       //This compares variables lexiographically
       return (a.name<b.name?-1:(a.name>b.name?1:0));
     }
   }
-  
+
   this.csp.variables.sort(this.heuristic);
 
   for(var i = 0; i < this.csp.variables.length + 1; i++){
@@ -10862,6 +10887,7 @@ function Backtrack(csp, heuristic){
   this.selectVariable = function(){
     //Graphically select
     this.checking = true;
+    this.check();
   };
 
   this.check = function() {
@@ -10915,6 +10941,8 @@ function Backtrack(csp, heuristic){
   };
 
   this.reset = function(){
+    this.variables = [];
+
     for(var i = 0; i < this.csp.variables.length + 1; i++){
       if(i != 0){
         this.variables[i] = clone(this.csp.variables[i-1]);
@@ -10977,19 +11005,12 @@ var D3Network = require("vue-d3-network");
 var CSPUTILS = require("../code/csp.js");
 var Search = require("../code/search.js");
 
-//var make = CSPUTILS.createCSPFromFile("../../testProblems/ColK4-conflicts.xml", function(csp){
-   // console.log(csp.variables);
-//});
-//var tempGraph = CSPUTILS.getNetwork( CSPUTILS.createCSPFromURL("../../testProblems/ColK4-conflicts.xml"));
-
 var colors = {
     1 : "red",
     2 : "blue",
     3 : "green",
     4 : "yellow"
 };
-
-
 
 var network = {
     nodes:
@@ -11018,7 +11039,6 @@ var network = {
 
 var csp = CSPUTILS.cspFromNetwork(network,new CSPUTILS.Domain("Domain",[1,2,3]));
 var bt = new Search.Backtrack(csp);
-
 
 new Vue({
     el: '#app',
@@ -11063,8 +11083,11 @@ new Vue({
         }
     },
     computed: {
-        //graph: CSPUTILS.getNetwork( CSPUTILS.createCSPFromFile("./public/testProblems/ColK4-conflicts.xml"))
+        currentVariableName: function(){
+          return bt.variables[bt.index].name;
+        }
     }
 
 });
+
 },{"../code/csp.js":60,"../code/search.js":61,"vue-d3-network":31}]},{},[62]);

@@ -12,7 +12,12 @@ var colors = {
 };
 
 function degree(a,b,csp){
-//Need to find
+  if(csp.getNeighbors(b).length - csp.getNeighbors(a).length != 0){
+      return csp.getNeighbors(b).length - csp.getNeighbors(a).length;
+  } else {
+    //This compares variables lexiographically
+    return (a.name<b.name?-1:(a.name>b.name?1:0));
+  }
 }
 
 function clone(obj) {
@@ -49,7 +54,7 @@ function Backtrack(csp, heuristic){
   if(typeof heuristic != "undefined"){
     this.heuristic = heuristic;
   } else {
-    this.heuristic = function(a,b){
+    this.heuristic = function(a,b,csp){
       //This compares variables lexiographically
       return (a.name<b.name?-1:(a.name>b.name?1:0));
     }
@@ -78,6 +83,7 @@ function Backtrack(csp, heuristic){
   this.selectVariable = function(){
     //Graphically select
     this.checking = true;
+    this.check();
   };
 
   this.check = function() {
@@ -131,6 +137,8 @@ function Backtrack(csp, heuristic){
   };
 
   this.reset = function(){
+    this.variables = [];
+
     for(var i = 0; i < this.csp.variables.length + 1; i++){
       if(i != 0){
         this.variables[i] = clone(this.csp.variables[i-1]);

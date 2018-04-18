@@ -6,19 +6,12 @@ var D3Network = require("vue-d3-network");
 var CSPUTILS = require("../code/csp.js");
 var Search = require("../code/search.js");
 
-//var make = CSPUTILS.createCSPFromFile("../../testProblems/ColK4-conflicts.xml", function(csp){
-   // console.log(csp.variables);
-//});
-//var tempGraph = CSPUTILS.getNetwork( CSPUTILS.createCSPFromURL("../../testProblems/ColK4-conflicts.xml"));
-
 var colors = {
     1 : "red",
     2 : "blue",
     3 : "green",
     4 : "yellow"
 };
-
-
 
 var network = {
     nodes:
@@ -47,7 +40,6 @@ var network = {
 
 var csp = CSPUTILS.cspFromNetwork(network,new CSPUTILS.Domain("Domain",[1,2,3]));
 var bt = new Search.Backtrack(csp);
-
 
 new Vue({
     el: '#app',
@@ -92,7 +84,9 @@ new Vue({
         }
     },
     computed: {
-        //graph: CSPUTILS.getNetwork( CSPUTILS.createCSPFromFile("./public/testProblems/ColK4-conflicts.xml"))
+        currentVariableName: function(){
+          return bt.variables[bt.index].name;
+        }
     }
 
 });

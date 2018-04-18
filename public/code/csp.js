@@ -67,9 +67,22 @@ function DiffConstraint(name, scope){
 }
 
 function CSP(name, variables, constraints){
+
   this.name = name;
   this.variables = variables;
   this.constraints = constraints;
+
+  this.getNeighbors = function(variable){
+    var result = [];
+    this.constraints.forEach(function(c){
+      if(c.scope[0] == variable.name){
+        result.push(c.scope[1]);
+      } else if(c.scope[1] == variable.name){
+        result.push(c.scope[0]);
+      }
+    })
+    return result;
+  }
 
   this.hasEdge = function(a, b){
     var edge = this.constraints.find(function(e){
