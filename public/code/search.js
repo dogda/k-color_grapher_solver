@@ -11,6 +11,10 @@ var colors = {
   4 : "yellow"
 };
 
+function degree(a,b,csp){
+//Need to find
+}
+
 function clone(obj) {
   var copy;
   if (null == obj || "object" != typeof obj) return obj;
@@ -32,7 +36,7 @@ function clone(obj) {
   throw new Error("This type isn't supported");
 }
 
-function Backtrack(csp){
+function Backtrack(csp, heuristic){
   var _this = this;
   this.consistent = true;
   this.checking = false;
@@ -40,6 +44,18 @@ function Backtrack(csp){
   this.index = 1;
   this.variables = [];
   this.csp = csp;
+  this.brelaz = false;
+
+  if(typeof heuristic != "undefined"){
+    this.heuristic = heuristic;
+  } else {
+    this.heuristic = function(a,b){
+      //This compares variables lexiographically
+      return (a.name<b.name?-1:(a.name>b.name?1:0));
+    }
+  }
+
+  this.csp.variables.sort(this.heuristic);
 
   for(var i = 0; i < this.csp.variables.length + 1; i++){
     if(i != 0){
