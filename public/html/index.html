@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title></title>
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+    </head>
 
-<body style="background: white">
-<script src="https://cdn.jsdelivr.net/npm/vue"></script>
-<div id="app">
-    <d3-network :net-nodes="graph.nodes" :net-links="graph.links" :options="options">
-    </d3-network>
-    <button v-on:click="nextOperation">Next</button>
-    <button v-on:click="solve">Solve</button>
-    <button v-on:click="reset">Reset</button>
-    <p> {{ currentVariableName }}</p>
-</div>
+    <body style="background: white">
+        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+        <div id="app">
+            <d3-network :net-nodes="graph.nodes" :net-links="graph.links" :options="options"></d3-network>
+            <button v-on:click="nextOperation">Next</button>
+            <button v-on:click="solve">Solve</button>
+            <button v-on:click="reset">Reset</button>
+            <p> {{ currentVariableName }}</p>
+        </div>
 
-<script src="./vueBundle.js"></script>
-</body>
+        <script src="./vueBundle.js"></script>
+    </body>
 </html>

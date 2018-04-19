@@ -247,9 +247,15 @@ function Backtrack (csp, heuristic) {
 
   this.unlabel = function (i) {
     var h = i - 1
+    this.path[i] = '';
     this.variables[i].currentDomain = this.variables[i].originalDomain.clone()
-    this.variables[h].currentDomain.remove(this.path[h])
-    this.consistent = this.variables[h].currentDomain.length !== 0
+    if(h > 0){
+      this.variables[h].currentDomain.remove(this.path[h])
+      this.consistent = this.variables[h].currentDomain.values.length !== 0
+      console.log(this.variables[h].currentDomain.values.length)
+    }
+
+    console.log(this.consistent)
     return h
   }
 
@@ -298,8 +304,10 @@ function Backtrack (csp, heuristic) {
   }
 
   this.solve = function () {
-    while (this.status === 'unknown') {
+    var m = 0
+    while (this.status === 'unknown' && m <= 10000) {
       this.next()
+      m++
     }
   }
 
@@ -464,7 +472,12 @@ new Vue({
     },
     computed: {
         currentVariableName: function () {
-          return bt.variables[bt.index].name
+            if(bt.index > 0){
+                return "On node" + bt.variables[bt.index].name
+            } else {
+                return "No Solution"
+            }
+
         }
     }
 

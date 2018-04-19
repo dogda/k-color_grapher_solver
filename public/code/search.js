@@ -52,8 +52,6 @@ function Backtrack (csp, heuristic) {
   this.csp = csp
   this.brelaz = false
 
-  //console.log('test')
-
   if (typeof heuristic !== 'undefined') {
     this.heuristic = heuristic
   } else {
@@ -77,9 +75,12 @@ function Backtrack (csp, heuristic) {
 
   this.unlabel = function (i) {
     var h = i - 1
+    this.path[i] = '';
     this.variables[i].currentDomain = this.variables[i].originalDomain.clone()
-    this.variables[h].currentDomain.remove(this.path[h])
-    this.consistent = this.variables[h].currentDomain.length !== 0
+    if(h > 0){
+      this.variables[h].currentDomain.remove(this.path[h])
+      this.consistent = this.variables[h].currentDomain.values.length !== 0
+    }
     return h
   }
 
@@ -128,8 +129,10 @@ function Backtrack (csp, heuristic) {
   }
 
   this.solve = function () {
-    while (this.status === 'unknown') {
+    var m = 0
+    while (this.status === 'unknown' && m <= 10000) {
       this.next()
+      m++
     }
   }
 
@@ -186,16 +189,3 @@ function Backtrack (csp, heuristic) {
     return colorsResult
   }
 }
-
-/* function testCSP(){
-  XML.createCSPFromFile("./public/testProblems/ColAustralia-conflicts.xml", function(cspTemp){
-    var bt = new Backtrack(cspTemp);
-    var m = 0;
-    while(bt.status == "unknown" || m < 10){
-      bt.next();
-      m++;
-    }
-  });
-}
-
-testCSP(); */

@@ -37,9 +37,11 @@ function createCSPFromXML (XMLString, callback) {
 
       var values = []
 
-      for (var j = 0; j < parseInt(range[1]); j++) {
+      for (var j = 0; j < parseInt(range[1]) - parseInt(range[0]) + 1; j++) {
         values[j] = parseInt(range[0]) + j
       }
+
+      console.log(result.instance.domains[0].domain)
 
       var domain = new CSPUTILS.Domain(domName, values)
       variables[i] = new CSPUTILS.Variable(result.instance.variables[0].variable[i]['$'].name, domain)

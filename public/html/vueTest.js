@@ -91,7 +91,12 @@ new Vue({
     },
     computed: {
         currentVariableName: function () {
-          return bt.variables[bt.index].name
+            if(bt.index > 0){
+                return "On node " + bt.variables[bt.index].name
+            } else {
+                return "No Solution"
+            }
+
         }
     }
 
