@@ -1,206 +1,108 @@
 module.exports = {
-  //createCSPFromFile: createCSPFromFile,
-  //createCSPFromURL: createCSPFromURL,
   CSP: CSP,
-  Domain:Domain,
-  //getNetwork: getNetwork,
-  cspFromNetwork: cspFromNetwork
-};
+  Domain: Domain,
+  Variable: Variable,
+  DiffConstraint: DiffConstraint
+}
 
-var xml2js = require('xml2js');
-//var $ = require('jquery');
-//var fs = require('fs');
+function Variable (name, domain) {
+  this.name = name
 
-function Variable(name, domain){
-  this.name = name;
+  this.originalDomain = domain
+  this.currentDomain = this.originalDomain.clone()
 
-  this.originalDomain = domain;
-  this.currentDomain = this.originalDomain.clone();
-
-  this.toString = function(){
-    var result = "Name: "+ this.name + ", Domain: ";
-    for(var i = 0; i < this.currentDomain.values.length; i++){
-      result = result + this.currentDomain.values[i];
-      if(i != this.currentDomain.values.length - 1) {
-        result = result + ", ";
+  this.toString = function () {
+    var result = 'Name: ' + this.name + ', Domain: '
+    for (var i = 0; i < this.currentDomain.values.length; i++) {
+      result = result + this.currentDomain.values[i]
+      if (i !== this.currentDomain.values.length - 1) {
+        result = result + ', '
       }
     }
-    return result;
+    return result
   }
 }
 
-function Domain(name, values){
-  this.name = name;
-  this.values = values;
+function Domain (name, values) {
+  this.name = name
+  this.values = values
 
-  this.clone = function(){
-    return new Domain(this.name, this.values);
-  };
+  this.clone = function () {
+    return new Domain(this.name, this.values)
+  }
 
-  this.remove = function(value){
-    var result = [];
-    var count = 0;
+  this.remove = function (value) {
+    var result = []
+    var count = 0
 
-    for(var i = 0; i < this.values.length; i++){
-      if(this.values[i] != value){
-        result[count] = this.values[i];
-        count++;
+    for (var i = 0; i < this.values.length; i++) {
+      if (this.values[i] !== value) {
+        result[count] = this.values[i]
+        count++
       }
     }
 
-    this.values = result;
-  };
-}
-
-//Theses are binary constraints
-function DiffConstraint(name, scope){
-  this.name = name;
-  this.scope = scope;
-
-  this.inScope = function(variableName) {
-    return (scope[0] == variableName || scope[1] == variableName);
-  };
-
-  this.toString = function() {
-    return "Name: " + this.name + ", Scope: " + this.scope[0] + ", " + this.scope[1];
+    this.values = result
   }
 }
 
-function CSP(name, variables, constraints){
+// Theses are binary constraints
+function DiffConstraint (name, scope) {
+  this.name = name
+  this.scope = scope
 
-  this.name = name;
-  this.variables = variables;
-  this.constraints = constraints;
+  this.inScope = function (variableName) {
+    return (scope[0] === variableName || scope[1] === variableName)
+  }
 
-  this.getNeighbors = function(variable){
-    var result = [];
-    this.constraints.forEach(function(c){
-      if(c.scope[0] == variable.name){
-        result.push(c.scope[1]);
-      } else if(c.scope[1] == variable.name){
-        result.push(c.scope[0]);
+  this.toString = function () {
+    return 'Name: ' + this.name + ', Scope: ' + this.scope[0] + ', ' + this.scope[1]
+  }
+}
+
+function CSP (name, variables, constraints) {
+  this.name = name
+  this.variables = variables
+  this.constraints = constraints
+  this.getNeighbors = function (variable) {
+    var result = []
+    this.constraints.forEach(function (c) {
+      if (c.scope[0] === variable.name) {
+        result.push(c.scope[1])
+      } else if (c.scope[1] === variable.name) {
+        result.push(c.scope[0])
       }
     })
-    return result;
+    return result
   }
 
-  this.hasEdge = function(a, b){
-    var edge = this.constraints.find(function(e){
-      return (e.inScope(a.name) && e.inScope(b.name));
-    });
-    return typeof edge != 'undefined';
+  this.hasEdge = function (a, b) {
+    var edge = this.constraints.find(function (e) {
+      return (e.inScope(a.name) && e.inScope(b.name))
+    })
+    return typeof edge !== 'undefined'
   }
 
-  this.getNetwork = function(){
-    var network = {};
+  this.getNetwork = function () {
+    var network = {}
 
-    var nodes = [];
-    for(var i = 0; i < this.variables.length; i++){
+    var nodes = []
+    for (var i = 0; i < this.variables.length; i++) {
       nodes[i] = {
         id: this.variables[i].name
       }
     }
-    var links = [];
-    for(var i = 0; i < this.constraints.length; i++){
+    var links = []; 
+    for (i = 0; i < this.constraints.length; i++) {
       links[i] = {
-        id : this.constraints[i].name,
+        id: this.constraints[i].name,
         sid: this.constraints[i].scope[0],
         tid: this.constraints[i].scope[1]
       }
     }
 
-    network.nodes = nodes;
-    network.links = links;
-    return network;
+    network.nodes = nodes
+    network.links = links
+    return network
   }
 }
-
-/*function getNetwork(csp){
-  var network = {};
-
-  var nodes = [];
-  for(var i = 0; i < csp.variables.length; i++){
-    nodes[i] = {
-      id: csp.variables[i].name
-    }
-  }
-  var links = [];
-  for(var i = 0; i < csp.constraints.length; i++){
-    links[i] = {
-      id : csp.constraints[i].name,
-      sid: csp.constraints[i].scope[0],
-      tid: csp.constraints[i].scope[1]
-    }
-  }
-
-  network.nodes = nodes;
-  network.links = links;
-  return network;
-}*/
-
-function cspFromNetwork(network, domain){
-  var variables = [];
-  var constraints = [];
-  for(var i = 0; i < network.nodes.length; i++){
-    variables[i] = new Variable(network.nodes[i].id, domain.clone());
-  }
-
-  for(var i = 0; i < network.links.length; i++){
-    var link = network.links[i];
-    constraints[i] = new DiffConstraint(link.id, [link.sid,link.tid]);
-  }
-  var csp = new CSP("Current",variables,constraints);
-  console.log(csp);
-  return csp ;
-}
-
-/*function createCSPFromFile(file, callback){
-  fs.readFile(file, function(err, data){
-    createCSPFromXML(data,callback);
-  });
-}*/
-
-/*function createCSPFromURL(URL, callback){
-  $.get(URL, function(data){
-    createCSPFromXML(data,callback);
-  });
-} */
-
-function createCSPFromXML(XMLString, callback){
-  var parser = xml2js.Parser();
-
-  var variables = [];
-  var constraints = [];
-  console.log(XMLString);
-  parser.parseString(XMLString, function(err,result){
-    console.log(result);
-    for(var i = 0; i < result.instance.variables[0].variable.length; i++){
-      var domName = result.instance.variables[0].variable[i]['$'].domain;
-
-      //Realize that this is not a perfect solution
-      var range = result.instance.domains[0].domain.find(function(e){
-        return e["$"].name = domName;
-      })['_'].split("..");
-
-      var values = [];
-
-      for(var j = 0; j < parseInt(range[1]); j++){
-        values[j] = parseInt(range[0])+j;
-      }
-
-      var domain = new Domain(domName, values);
-      variables[i] = new Variable(result.instance.variables[0].variable[i]['$'].name, domain);
-    }
-
-    for(var i = 0; i < result.instance.constraints[0].constraint.length; i++){
-      var scope = result.instance.constraints[0].constraint[i]['$'].scope.split(" ");
-      constraints[i] = new DiffConstraint(result.instance.constraints[0].constraint[i]['$'].name, scope);
-    }
-
-    callback( new CSP(result.instance.presentation[0]["$"].name, variables, constraints));
-  })
-}
-
-/*createCSPFromFile("./public/testProblems/ColAustralia-conflicts.xml", function(csp){
-  console.log(getNetwork(csp));
-});*/

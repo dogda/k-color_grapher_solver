@@ -10,3 +10,7 @@
 ## Vis.js
 
 [Documentation](http://visjs.org/docs/network/)
+
+## Source of tests
+
+[Link](http://xcsp.org/series)

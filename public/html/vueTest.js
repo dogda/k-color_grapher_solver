@@ -2,44 +2,50 @@
  * Created by kgaar2 on 4/10/2018.
  */
 
-var D3Network = require("vue-d3-network");
-var CSPUTILS = require("../code/csp.js");
-var Search = require("../code/search.js");
+var D3Network = require('vue-d3-network')
+var CSPUTILS = require('../code/csp.js')
+var Search = require('../code/search.js')
+var Network = require('../code/network.js')
 
-var colors = {
-    1 : "red",
-    2 : "blue",
-    3 : "green",
-    4 : "yellow"
-};
-
-var network = {
+var network =
+  { domainValues: [ 0, 1, 2 ],
+    name: '?',
     nodes:
-        [
-            { id: 'NSW',_color: "grey" },
-            { id: 'NT',_color: "grey" },
-            { id: 'Q',_color: "grey" },
-            { id: 'SA',_color: "grey" },
-            { id: 'T',_color: "grey" },
-            { id: 'V',_color: "grey" },
-            { id: 'WA',_color: "grey" }
-        ],
+     [ { id: 'V0' },
+       { id: 'V1' },
+       { id: 'V2' },
+       { id: 'V3' },
+       { id: 'V4' },
+       { id: 'V5' },
+       { id: 'V6' },
+       { id: 'V7' },
+       { id: 'V8' },
+       { id: 'V9' },
+       { id: 'V10' } ],
     links:
-        [
-            { id: 'C0', sid: 'WA', tid: 'NT',_color: "#000000"},
-            { id: 'C1', sid: 'WA', tid: 'SA',_color: "#000000" },
-            { id: 'C2', sid: 'NT', tid: 'SA',_color: "#000000" },
-            { id: 'C3', sid: 'NT', tid: 'Q',_color: "#000000" },
-            { id: 'C4', sid: 'Q', tid: 'NSW',_color: "#000000" },
-            { id: 'C5', sid: 'Q', tid: 'SA',_color: "#000000" },
-            { id: 'C6', sid: 'NSW', tid: 'SA',_color: "#000000" },
-            { id: 'C7', sid: 'NSW', tid: 'V',_color: "#000000" },
-            { id: 'C8', sid: 'SA', tid: 'V',_color: "#000000" }
-        ]
-};
+     [ { id: 'C0', sid: 'V0', tid: 'V1', _color: 'black' },
+       { id: 'C1', sid: 'V0', tid: 'V3', _color: 'black' },
+       { id: 'C2', sid: 'V0', tid: 'V6', _color: 'black' },
+       { id: 'C3', sid: 'V0', tid: 'V8', _color: 'black' },
+       { id: 'C4', sid: 'V1', tid: 'V2', _color: 'black' },
+       { id: 'C5', sid: 'V1', tid: 'V5', _color: 'black' },
+       { id: 'C6', sid: 'V1', tid: 'V7', _color: 'black' },
+       { id: 'C7', sid: 'V2', tid: 'V4', _color: 'black' },
+       { id: 'C8', sid: 'V2', tid: 'V6', _color: 'black' },
+       { id: 'C9', sid: 'V2', tid: 'V9', _color: 'black' },
+       { id: 'C10', sid: 'V3', tid: 'V4', _color: 'black' },
+       { id: 'C11', sid: 'V3', tid: 'V5', _color: 'black' },
+       { id: 'C12', sid: 'V3', tid: 'V9', _color: 'black' },
+       { id: 'C13', sid: 'V4', tid: 'V7', _color: 'black' },
+       { id: 'C14', sid: 'V4', tid: 'V8', _color: 'black' },
+       { id: 'C15', sid: 'V5', tid: 'V10', _color: 'black' },
+       { id: 'C16', sid: 'V6', tid: 'V10', _color: 'black' },
+       { id: 'C17', sid: 'V7', tid: 'V10', _color: 'black' },
+       { id: 'C18', sid: 'V8', tid: 'V10', _color: 'black' },
+       { id: 'C19', sid: 'V9', tid: 'V10', _color: 'black' } ] }
 
-var csp = CSPUTILS.cspFromNetwork(network,new CSPUTILS.Domain("Domain",[1,2,3]));
-var bt = new Search.Backtrack(csp);
+var csp = Network.networkToCsp(network)
+var bt = new Search.Backtrack(csp)
 
 new Vue({
     el: '#app',
@@ -56,7 +62,8 @@ new Vue({
             //},
             nodeSize: 20,
             nodeLabels: true,
-            linkWidth: 5
+            linkWidth: 2
+
         },
         backTrack: bt
     },
@@ -69,14 +76,13 @@ new Vue({
             this.backTrack.solve();
             this.changeColors(this.backTrack.getColors());
         },
-        reset: function(event){
+        reset: function (event) {
             this.backTrack.reset();
             this.changeColors(this.backTrack.getColors());
         },
-        changeColors:function(colors){
+        changeColors: function (colors) {
             this.graph.nodes.forEach(function(e){
                 var color = colors.find(function(element){
-                    console.log(element);
                     return element.id == e.id;
                 });
                 e._color=color._color;
@@ -84,9 +90,9 @@ new Vue({
         }
     },
     computed: {
-        currentVariableName: function(){
-          return bt.variables[bt.index].name;
+        currentVariableName: function () {
+          return bt.variables[bt.index].name
         }
     }
 
-});
+})
