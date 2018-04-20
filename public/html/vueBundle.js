@@ -129,7 +129,8 @@ function cspToNetwork (csp) {
 
   for (var i = 0; i < csp.variables.length; i++) {
     nodes[i] = {
-      id: csp.variables[i].name
+      id: csp.variables[i].name,
+      _color: "gray"
     }
   }
 
@@ -137,7 +138,8 @@ function cspToNetwork (csp) {
     links[i] = {
       id: csp.constraints[i].name,
       sid: csp.constraints[i].scope[0],
-      tid: csp.constraints[i].scope[1]
+      tid: csp.constraints[i].scope[1],
+      _color: "slategray"
     }
   }
 
@@ -221,11 +223,32 @@ function Backtrack (csp, heuristic) {
   this.variables = []
   this.csp = csp
   this.brelaz = false
-
-  //console.log('test')
+  this.nodesVisited = 0
+  this.constraintsCompared = 0
+  this.backTracks = 0
 
   if (typeof heuristic !== 'undefined') {
-    this.heuristic = heuristic
+    if (typeof heuristic === 'string') {
+       if (heuristic === 'brelaz') {
+         this.brelaz = true
+         this.heuristic = function (a, b, csp) {
+           // This compares variables lexiographically
+           return (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))
+         }
+       } else if (heuristic === 'deg'){
+         this.heuristic = function (a, b) {
+           if (_this.csp.getNeighbors(b).length - _this.csp.getNeighbors(a).length !== 0) {
+             //console.log(_this.csp.getNeighbors(b).length + ", "+ _this.csp.getNeighbors(a).length + " - " + ( _this.csp.getNeighbors(b).length - _this.csp.getNeighbors(a).length ))
+             return _this.csp.getNeighbors(b).length - _this.csp.getNeighbors(a).length
+           } else {
+             // This compares variables lexiographically
+             return (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))
+           }
+         }
+       }
+     } else if (typeof heuristic === 'function') {
+       this.heuristic = heuristic
+     }
   } else {
     this.heuristic = function (a, b, csp) {
       // This compares variables lexiographically
@@ -247,15 +270,13 @@ function Backtrack (csp, heuristic) {
 
   this.unlabel = function (i) {
     var h = i - 1
-    this.path[i] = '';
+    this.path[i] = ''
     this.variables[i].currentDomain = this.variables[i].originalDomain.clone()
     if(h > 0){
       this.variables[h].currentDomain.remove(this.path[h])
       this.consistent = this.variables[h].currentDomain.values.length !== 0
-      console.log(this.variables[h].currentDomain.values.length)
     }
-
-    console.log(this.consistent)
+    this.backTracks++
     return h
   }
 
@@ -264,20 +285,23 @@ function Backtrack (csp, heuristic) {
 
     _this.consistent = true
 
-    _this.path[this.index] = this.variables[this.index].currentDomain.values[0]
+    _this.path[_this.index] = _this.variables[_this.index].currentDomain.values[0]
 
-    for (var h = 1; h < this.index && _this.consistent; h++) {
-      if (this.csp.hasEdge(_this.variables[this.index], _this.variables[h]) && _this.path[this.index] === _this.path[h]) {
-        _this.variables[this.index].currentDomain.remove(_this.path[this.index])
+    _this.nodesVisited++
+
+    for (var h = 1; h < _this.index && _this.consistent; h++) {
+      if (_this.csp.hasEdge(_this.variables[_this.index], _this.variables[h]) && _this.path[_this.index] === _this.path[h]) {
+        _this.variables[_this.index].currentDomain.remove(_this.path[_this.index])
         _this.consistent = false
       }
+      _this.constraintsCompared++
     }
 
-    if (this.consistent) {
-      this.index = this.index + 1
-      this.checking = false
-    } else if (this.variables[this.index].currentDomain.values.length === 0) {
-      this.checking = false
+    if (_this.consistent) {
+      _this.index = _this.index + 1
+      _this.checking = false
+    } else if (_this.variables[_this.index].currentDomain.values.length === 0) {
+      _this.checking = false
     }
   }
 
@@ -300,26 +324,30 @@ function Backtrack (csp, heuristic) {
         this.check()
       }
     }
-    console.log(this.path)
+    //console.log(this.path)
   }
 
   this.solve = function () {
     var m = 0
-    while (this.status === 'unknown' && m <= 10000) {
+    while (this.status === 'unknown' && m <= 1000000) {
       this.next()
       m++
     }
   }
 
   this.runPerformanceTest = function () {
-   console.log('took seconds')
     this.reset()
     var t0 = new Date().getTime()
     this.solve()
     var t1 = new Date().getTime()
+
+    console.log('time: ' + (t1 - t0) + ' milliseconds')
+    console.log('CC: ' + this.constraintsCompared)
+    console.log('NV: ' + this.nodesVisited)
+    console.log('BT: ' + this.backTracks)
     this.reset()
 
-    console.log('took ' + (t1 - t0) + ' milliseconds')
+
   }
 
   this.reset = function () {
@@ -336,6 +364,9 @@ function Backtrack (csp, heuristic) {
     this.checking = false
     this.status = 'unknown'
     this.index = 1
+    this.nodesVisited = 0
+    this.constraintsCompared = 0
+    this.backTracks = 0
     this.path = new Array(this.variables.length)
   }
 
@@ -365,19 +396,6 @@ function Backtrack (csp, heuristic) {
   }
 }
 
-/* function testCSP(){
-  XML.createCSPFromFile("./public/testProblems/ColAustralia-conflicts.xml", function(cspTemp){
-    var bt = new Backtrack(cspTemp);
-    var m = 0;
-    while(bt.status == "unknown" || m < 10){
-      bt.next();
-      m++;
-    }
-  });
-}
-
-testCSP(); */
-
 },{"./csp.js":2}],5:[function(require,module,exports){
 /**
  * Created by kgaar2 on 4/10/2018.
@@ -389,6 +407,28 @@ var Search = require('../code/search.js')
 var Network = require('../code/network.js')
 
 var network =
+{ domainValues: [ 1, 2, 3 ],
+  name: 'ColAustralia-conflicts',
+  nodes:
+   [ { id: 'NSW' },
+     { id: 'NT' },
+     { id: 'Q' },
+     { id: 'SA' },
+     { id: 'T' },
+     { id: 'V' },
+     { id: 'WA' } ],
+  links:
+   [ { id: 'C0', sid: 'WA', tid: 'NT', _color: 'slategray' },
+     { id: 'C1', sid: 'WA', tid: 'SA', _color: 'slategray' },
+     { id: 'C2', sid: 'NT', tid: 'SA', _color: 'slategray' },
+     { id: 'C3', sid: 'NT', tid: 'Q', _color: 'slategray' },
+     { id: 'C4', sid: 'Q', tid: 'NSW', _color: 'slategray' },
+     { id: 'C5', sid: 'Q', tid: 'SA', _color: 'slategray' },
+     { id: 'C6', sid: 'NSW', tid: 'SA', _color: 'slategray' },
+     { id: 'C7', sid: 'NSW', tid: 'V', _color: 'slategray' },
+     { id: 'C8', sid: 'SA', tid: 'V', _color: 'slategray' } ] }
+
+var network2 =
   { domainValues: [ 0, 1, 2 ],
     name: '?',
     nodes:
@@ -426,7 +466,7 @@ var network =
        { id: 'C19', sid: 'V9', tid: 'V10', _color: 'black' } ] }
 
 var csp = Network.networkToCsp(network)
-var bt = new Search.Backtrack(csp)
+var bt = new Search.Backtrack(csp, 'deg')
 
 new Vue({
     el: '#app',
@@ -468,16 +508,19 @@ new Vue({
                 });
                 e._color=color._color;
             })
+            this.$forceUpdate();
         }
     },
     computed: {
         currentVariableName: function () {
             if(bt.index > 0){
-                return "On node" + bt.variables[bt.index].name
+                return "On node " + bt.variables[bt.index].name
             } else {
                 return "No Solution"
             }
-
+        },
+        graph: function () {
+          return network
         }
     }
 

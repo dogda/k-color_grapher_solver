@@ -8,6 +8,28 @@ var Search = require('../code/search.js')
 var Network = require('../code/network.js')
 
 var network =
+{ domainValues: [ 1, 2, 3 ],
+  name: 'ColAustralia-conflicts',
+  nodes:
+   [ { id: 'NSW' },
+     { id: 'NT' },
+     { id: 'Q' },
+     { id: 'SA' },
+     { id: 'T' },
+     { id: 'V' },
+     { id: 'WA' } ],
+  links:
+   [ { id: 'C0', sid: 'WA', tid: 'NT', _color: 'slategray' },
+     { id: 'C1', sid: 'WA', tid: 'SA', _color: 'slategray' },
+     { id: 'C2', sid: 'NT', tid: 'SA', _color: 'slategray' },
+     { id: 'C3', sid: 'NT', tid: 'Q', _color: 'slategray' },
+     { id: 'C4', sid: 'Q', tid: 'NSW', _color: 'slategray' },
+     { id: 'C5', sid: 'Q', tid: 'SA', _color: 'slategray' },
+     { id: 'C6', sid: 'NSW', tid: 'SA', _color: 'slategray' },
+     { id: 'C7', sid: 'NSW', tid: 'V', _color: 'slategray' },
+     { id: 'C8', sid: 'SA', tid: 'V', _color: 'slategray' } ] }
+
+var network2 =
   { domainValues: [ 0, 1, 2 ],
     name: '?',
     nodes:
@@ -45,7 +67,7 @@ var network =
        { id: 'C19', sid: 'V9', tid: 'V10', _color: 'black' } ] }
 
 var csp = Network.networkToCsp(network)
-var bt = new Search.Backtrack(csp)
+var bt = new Search.Backtrack(csp, 'deg')
 
 new Vue({
     el: '#app',
@@ -87,6 +109,7 @@ new Vue({
                 });
                 e._color=color._color;
             })
+            this.$forceUpdate();
         }
     },
     computed: {
@@ -96,7 +119,9 @@ new Vue({
             } else {
                 return "No Solution"
             }
-
+        },
+        graph: function () {
+          return network
         }
     }
 

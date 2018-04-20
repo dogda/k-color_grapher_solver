@@ -15,7 +15,8 @@ function cspToNetwork (csp) {
 
   for (var i = 0; i < csp.variables.length; i++) {
     nodes[i] = {
-      id: csp.variables[i].name
+      id: csp.variables[i].name,
+      _color: "gray"
     }
   }
 
@@ -23,7 +24,8 @@ function cspToNetwork (csp) {
     links[i] = {
       id: csp.constraints[i].name,
       sid: csp.constraints[i].scope[0],
-      tid: csp.constraints[i].scope[1]
+      tid: csp.constraints[i].scope[1],
+      _color: "slategray"
     }
   }
 

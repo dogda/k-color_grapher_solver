@@ -7,8 +7,9 @@ var file = process.argv[2]
 
 XML.createCSPFromFile(file,
   function (csp) {
-    //console.log(Network.cspToNetwork(csp))
-    var bt = new Search.Backtrack(csp)
+    var bt = new Search.Backtrack(csp, 'lex')
+    // console.log(Network.cspToNetwork(csp))
     bt.runPerformanceTest()
+    //console.log(bt.status)
   }
 )
