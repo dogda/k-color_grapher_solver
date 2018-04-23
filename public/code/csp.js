@@ -83,6 +83,13 @@ function CSP (name, variables, constraints) {
     return typeof edge !== 'undefined'
   }
 
+  this.getEdge = function (a, b) {
+    var edge = this.constraints.find(function (e) {
+      return (e.inScope(a.name) && e.inScope(b.name))
+    })
+    return edge
+  }
+
   this.getNetwork = function () {
     var network = {}
 
@@ -92,7 +99,7 @@ function CSP (name, variables, constraints) {
         id: this.variables[i].name
       }
     }
-    var links = []; 
+    var links = [];
     for (i = 0; i < this.constraints.length; i++) {
       links[i] = {
         id: this.constraints[i].name,

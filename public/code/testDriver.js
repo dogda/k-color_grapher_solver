@@ -7,9 +7,14 @@ var file = process.argv[2]
 
 XML.createCSPFromFile(file,
   function (csp) {
-    var bt = new Search.Backtrack(csp, 'lex')
-    // console.log(Network.cspToNetwork(csp))
-    bt.runPerformanceTest()
-    //console.log(bt.status)
+    var btLex = new Search.Backtrack(csp, 'lex')
+    btLex.runPerformanceTest()
+    var btDeg = new Search.Backtrack(csp, 'deg')
+    btDeg.runPerformanceTest()
+    var btWDeg = new Search.Backtrack(csp, 'wDeg')
+    btWDeg.runPerformanceTest()
+    var btBlz = new Search.Backtrack(csp, 'blz')
+    //console.log(btBlz.variables)
+    btBlz.runPerformanceTest()
   }
 )

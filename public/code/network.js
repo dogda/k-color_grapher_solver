@@ -3,7 +3,7 @@ module.exports = {
   networkToCsp: networkToCsp
 }
 
-var CSPUTILS = require('./csp.js')
+var CSPUTILS = require('../code/csp.js')
 
 /*
 * Note: These functions assumes all variables have the same domain.

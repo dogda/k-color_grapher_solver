@@ -2,7 +2,7 @@ module.exports = {
   createCSPFromFile: createCSPFromFile
 }
 
-var CSPUTILS = require('./csp.js')
+var CSPUTILS = require('../code/csp.js')
 var fs = require('fs')
 var xml2js = require('xml2js')
 // var $ = require('jquery')

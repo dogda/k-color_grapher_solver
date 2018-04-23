@@ -67,7 +67,7 @@ var network2 =
        { id: 'C19', sid: 'V9', tid: 'V10', _color: 'black' } ] }
 
 var csp = Network.networkToCsp(network)
-var bt = new Search.Backtrack(csp, 'deg')
+var bt = new Search.Backtrack(csp, 'blz')
 
 new Vue({
     el: '#app',
@@ -84,44 +84,46 @@ new Vue({
             //},
             nodeSize: 20,
             nodeLabels: true,
-            linkWidth: 2
+            linkWidth: 2,
+            canvas: true
 
         },
         backTrack: bt
     },
     methods: {
-        nextOperation: function(event){
-            this.backTrack.next();
-            this.changeColors(this.backTrack.getColors());
+        nextOperation: function (event) {
+            this.backTrack.next()
+            this.changeColors(this.backTrack.getColors())
         },
-        solve: function(event){
-            this.backTrack.solve();
-            this.changeColors(this.backTrack.getColors());
+        solve: function (event) {
+            this.backTrack.solve()
+            this.changeColors(this.backTrack.getColors())
         },
         reset: function (event) {
-            this.backTrack.reset();
-            this.changeColors(this.backTrack.getColors());
+            this.backTrack.reset()
+            this.changeColors(this.backTrack.getColors())
         },
         changeColors: function (colors) {
             this.graph.nodes.forEach(function(e){
                 var color = colors.find(function(element){
-                    return element.id == e.id;
+                    return element.id == e.id
                 });
-                e._color=color._color;
+                e._color=color._color
             })
-            this.$forceUpdate();
+
+            var temp = this.graph.links.pop()
+            this.graph.links.push(temp)
         }
     },
     computed: {
         currentVariableName: function () {
-            if(bt.index > 0){
+            if(bt.index === bt.variables.length){
+              return 'Solved'
+            } else if(bt.index > 0){
                 return "On node " + bt.variables[bt.index].name
             } else {
                 return "No Solution"
             }
-        },
-        graph: function () {
-          return network
         }
     }
 
