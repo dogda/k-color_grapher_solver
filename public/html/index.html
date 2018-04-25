@@ -6,15 +6,93 @@
     </head>
 
     <body style="background: white">
-        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-        <div id="app">
-            <d3-network :net-nodes="graph.nodes" :net-links="graph.links" :options="options"></d3-network>
+      <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+      <div id="app">
+        <div id="options">
+          <div id="operations">
             <button v-on:click="nextOperation">Next</button>
             <button v-on:click="solve">Solve</button>
             <button v-on:click="reset">Reset</button>
-            <p> {{ currentVariableName }}</p>
-        </div>
+          </div>
+          <div class="option-list">
+            <h2>Heuristics</h2>
+            <button v-bind:class="{ selected: (backTrack.heuristic === 'lex') }" v-on:click="changeHeuristic ('lex') ">lexiographical</button>
+            <button v-bind:class="{ selected: (backTrack.heuristic === 'deg') }" v-on:click="changeHeuristic ('deg') ">degree</button>
+            <button v-bind:class="{ selected: (backTrack.heuristic === 'wDeg') }" v-on:click="changeHeuristic ('wDeg')">weighted degree</button>
+            <button v-bind:class="{ selected: (backTrack.heuristic === 'blz') }" v-on:click="changeHeuristic ('blz') ">brelaz</button>
+          </div>
+          <div class="option-list">
+            <h2>CSP Instances</h2>
+            <button v-bind:class="{ selected: (networkName === 'aus') }" v-on:click="changeCSP (exampleNetworks[0], 'aus') ">Australia</button>
+            <button v-bind:class="{ selected: (networkName === 'myc') }" v-on:click="changeCSP (exampleNetworks[1], 'myc')">Myciel</button>
+            <button v-bind:class="{ selected: (networkName === 'que') }" v-on:click="changeCSP (exampleNetworks[2], 'que')">5 Queens</button>
+          </div>
+          <div>
+            <h2>Solution Statisitics </h2>
+            <h4>{{ currentVariableName }}</h4>
+            <h4>Constraints: {{ operationCounters.constraints}}</h4>
+            <h4>Nodes: {{ operationCounters.nodes }}</h4>
+            <h4>Backtracks: {{ operationCounters.backtracks }}</h4>
+          </div>
 
-        <script src="./vueBundle.js"></script>
+        </div>
+        <d3-network id="graph" :net-nodes="graph.nodes" :net-links="graph.links" :options="options"></d3-network>
+      </div>
+
+      <script src="./vueBundle.js"></script>
+      <style>
+        #app {
+          display: flex;
+        }
+
+        #options {
+          width: 30%;
+        }
+
+        button {
+          background: #339989;
+          transition: background-color 0.5s ease;
+          border: 5px solid white;
+          border-radius: 5px;
+          font-size: 30px;
+          color: #FFFFFF;
+        }
+
+        button:focus {
+          outline:0;
+        }
+
+        .selected {
+          border: 5px solid black;
+        }
+
+        h2, h4, p {
+          color: #36453B;
+          font-family: sans-serif;
+        }
+
+        button:hover {
+          background: #72BDA3;
+        }
+
+        .option-list {
+          display: flex;
+          flex-direction: column;
+        }
+
+        #operations {
+          display: flex;
+          justify-content: space-between;
+        }
+
+        #graph {
+          width: 70%;
+        }
+
+        .net-svg {
+          width: 100%;
+          height: 800px;
+        }
+      </style>
     </body>
 </html>

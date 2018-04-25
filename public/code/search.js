@@ -2,7 +2,7 @@ module.exports = {
   Backtrack: Backtrack
 }
 
-const CSPUTILS = require('../code/csp.js')
+// const CSPUTILS = require('../code/csp.js')
 
 var colors = {
   0: 'yellow',
@@ -35,71 +35,81 @@ function clone (obj) {
 
 function Backtrack (csp, heuristic) {
   var _this = this
-  this.consistent = true
-  this.checking = false
-  this.status = 'unknown'
-  this.index = 1
-  this.variables = []
-  this.csp = csp
-  this.brelaz = false
-  this.nodesVisited = 0
-  this.constraintsCompared = 0
-  this.backTracks = 0
-
+  _this.csp = csp
+  _this.brelaz = false
   if (typeof heuristic === 'string') {
-    this.heuristic = heuristic
+    _this.heuristic = heuristic
   } else {
-    this.heuristic = "lex"
+    _this.heuristic = 'lex'
   }
-
-  if (this.heuristic === 'deg' || this.heuristic === 'wDeg' || this.heuristic === 'blz'){
-      this.csp.variables.sort(function (a, b) {
-        if (_this.csp.getNeighbors(b).length - _this.csp.getNeighbors(a).length !== 0) {
-          //console.log(_this.csp.getNeighbors(b).length + ", "+ _this.csp.getNeighbors(a).length + " - " + ( _this.csp.getNeighbors(b).length - _this.csp.getNeighbors(a).length ))
-          return _this.csp.getNeighbors(b).length - _this.csp.getNeighbors(a).length
-        } else {
-          // This compares variables lexiographically
-          return (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))
-        }
-      })
+  if (_this.heuristic === 'deg' || _this.heuristic === 'wDeg' || _this.heuristic === 'blz') {
+    _this.csp.variables.sort(function (a, b) {
+      if (_this.csp.getNeighbors(b).length - _this.csp.getNeighbors(a).length !== 0) {
+        return _this.csp.getNeighbors(b).length - _this.csp.getNeighbors(a).length
+      } else {
+        // This compares variables lexiographically
+        return (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))
+      }
+    })
   } else {
-    this.csp.variables.sort(function (a, b) {
+    _this.csp.variables.sort(function (a, b) {
       return (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))
     })
   }
 
-
-  for (var i = 0; i < this.csp.variables.length + 1; i++) {
-    if (i !== 0) {
-      this.variables[i] = clone(this.csp.variables[i - 1])
-      this.variables[i].weight = this.csp.getNeighbors(this.variables[i]).length
-      this.variables[i].neighborColors = new Set()
-    } else {
-      this.variables[i] = undefined
-
+  _this.reset = function () {
+    _this.consistent = true
+    _this.checking = false
+    _this.status = 'unknown'
+    _this.index = 1
+    _this.variables = []
+    _this.nodesVisited = 0
+    _this.constraintsCompared = 0
+    _this.backTracks = 0
+    for (var i = 0; i < _this.csp.variables.length + 1; i++) {
+      if (i !== 0) {
+        _this.variables[i] = clone(_this.csp.variables[i - 1])
+        _this.variables[i].weight = _this.csp.getNeighbors(_this.variables[i]).length
+        _this.variables[i].neighborColors = new Set()
+        _this.variables[i].neighbors = []
+      } else {
+        _this.variables[i] = undefined
+      }
+    }
+    _this.path = new Array(_this.variables.length)
+    for (i = 1; i < _this.variables.length; i++) {
+      _this.csp.getNeighbors(_this.variables[i]).forEach(function (e) {
+        _this.variables[i].neighbors.push(_this.variables.find(
+          function (f) {
+            if (typeof f !== 'undefined') {
+              return f.name === e
+            } else {
+              return false
+            }
+          }
+        ))
+      })
     }
   }
 
-  this.path = new Array(this.variables.length)
-
-  this.unlabel = function (i) {
-    this.unlabelNeighbors(this.variables[i], this.path[i])
+  _this.unlabel = function (i) {
+    _this.unlabelNeighbors(_this.variables[i], _this.path[i])
     var h = i - 1
-    this.path[i] = ''
-    this.variables[i].currentDomain = this.variables[i].originalDomain.clone()
-    if(h > 0){
-      this.unlabelNeighbors(this.variables[i], this.path[i])
-      this.variables[h].currentDomain.remove(this.path[h])
-      this.consistent = this.variables[h].currentDomain.values.length !== 0
+    _this.path[i] = ''
+    _this.variables[i].currentDomain = _this.variables[i].originalDomain.clone()
+    if (h > 0) {
+      _this.unlabelNeighbors(_this.variables[i], _this.path[i])
+      _this.variables[h].currentDomain.remove(_this.path[h])
+      _this.consistent = _this.variables[h].currentDomain.values.length !== 0
     }
-    this.backTracks++
+    _this.backTracks++
     return h
   }
 
-  this.getNextVariable = function () {
-    if (this.heuristic === 'wDeg') {
+  _this.getNextVariable = function () {
+    if (_this.heuristic === 'wDeg') {
       // This should split, sort, and recombine the list of variables according to weight
-      var first =   this.variables.splice(this.index + 1, (this.variables.length - this.index) - 1)
+      var first = _this.variables.splice(_this.index + 1, (_this.variables.length - _this.index) - 1)
         .sort(function (a, b) {
           if (b.weight - a.weight !== 0) {
             return b.weight - a.weight
@@ -109,67 +119,48 @@ function Backtrack (csp, heuristic) {
           }
         })
 
-      var second = this.variables.splice(0,this.index+2)
-      // console.log(first)
-      // console.log(second)
-      this.variables = second.concat(first)
-    } else if (this.heuristic === 'blz') {
-      var first =   this.variables.splice(this.index, (this.variables.length - this.index))
+      var second = _this.variables.splice(0, _this.index + 2)
+
+      _this.variables = second.concat(first)
+    } else if (_this.heuristic === 'blz') {
+      var firstBlz = _this.variables.splice(_this.index, (_this.variables.length - _this.index))
         .sort(function (a, b) {
           if (b.neighborColors.size - a.neighborColors.size !== 0) {
             return b.neighborColors.size - a.neighborColors.size
-          } else if (_this.csp.getNeighbors(b).length - _this.csp.getNeighbors(a).length !== 0) {
-            return _this.csp.getNeighbors(b).length - _this.csp.getNeighbors(a).length
+          } else if (b.neighbors.length - a.neighbors.length !== 0) {
+            return b.neighbors.length - a.neighbors.length
           } else {
             // This compares variables lexiographically
             return (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0))
           }
         })
 
-      var second = this.variables.splice(0,this.index+1)
-      this.variables = second.concat(first)
+      var secondBlz = _this.variables.splice(0, _this.index + 1)
+      _this.variables = secondBlz.concat(firstBlz)
     }
   }
 
-  this.labelNeighbors = function(variable, value){
-    //console.log(this.variables)
-    var neighbors = this.csp.getNeighbors(variable).forEach(function (e) {
-
-      var tempVar = _this.variables.find(function (f) {
-
-        if(typeof f !== 'undefined'){
-          return f.name === e
-        } else {
-          return false
-        }
-      })
-
-      if(typeof tempVar !== 'undefined'){
-        tempVar.neighborColors.add(value)
-      }
+  _this.labelNeighbors = function (variable, value) {
+    // console.log(this.variables)
+    variable.neighbors.forEach(function (e) {
+      e.neighborColors.add(value)
     })
   }
 
-  this.unlabelNeighbors = function(variable, value){
-    var neighbors = this.csp.getNeighbors(variable).forEach(function (e) {
-      _this.variables.find(function (f) {
-        if(typeof f !== 'undefined'){
-          return f.name === e
-        } else {
-          return false
-        }
-      }).neighborColors.delete(value)
+  _this.unlabelNeighbors = function (variable, value) {
+    variable.neighbors.forEach(function (e) {
+      e.neighborColors.delete(value)
     })
   }
 
-  this.check = function () {
-    var _this = this
-
+  _this.check = function () {
     _this.consistent = true
 
-    _this.path[_this.index] = _this.variables[_this.index].currentDomain.values[0]
+    if (_this.path[_this.index] === '' || typeof _this.path[_this.index] === 'undefined') {
+      _this.nodesVisited++
+    }
 
-    _this.nodesVisited++
+    _this.path[_this.index] = _this.variables[_this.index].currentDomain.values[0]
 
     for (var h = 1; h < _this.index && _this.consistent; h++) {
       if (_this.csp.hasEdge(_this.variables[_this.index], _this.variables[h]) && _this.path[_this.index] === _this.path[h]) {
@@ -183,8 +174,6 @@ function Backtrack (csp, heuristic) {
       _this.constraintsCompared++
     }
 
-
-
     if (_this.consistent) {
       _this.labelNeighbors(_this.variables[_this.index], _this.path[_this.index])
       _this.index = _this.index + 1
@@ -194,88 +183,67 @@ function Backtrack (csp, heuristic) {
     }
   }
 
-  this.next = function () {
-    // console.log(this.index)
-    if (this.status === 'unknown') {
-      if (!this.checking) {
-        if (this.index > this.variables.length - 1) {
-          this.status = 'solved'
-        } else if (this.index === 0) {
-          this.status = 'impossible'
+  _this.next = function () {
+    if (_this.status === 'unknown') {
+      if (!_this.checking) {
+        if (_this.index > _this.variables.length - 1) {
+          _this.status = 'solved'
+        } else if (_this.index === 0) {
+          _this.status = 'impossible'
         } else {
-          if (this.consistent) {
-            if(this.variables[this.index].currentDomain.length === this.variables[this.index].originalDomain.length ){
-              this.getNextVariable()
+          if (_this.consistent) {
+            if (_this.variables[_this.index].currentDomain.length === _this.variables[_this.index].originalDomain.length) {
+              _this.getNextVariable()
             }
-            for (var i = 0; i < this.variables.length; i++){
-              if(typeof this.variables[i] !== 'undefined'){
-                // console.log('   ' + this.variables[i].name)
-              } else {
-                // console.log('   Empty')
-              }
-            }
-            this.checking = true
-
-            this.check()
+            _this.checking = true
+            _this.check()
           } else {
-            this.index = this.unlabel(this.index)
+            _this.index = _this.unlabel(_this.index)
           }
         }
       } else {
-        this.check()
+        _this.check()
       }
     }
-      //console.log(this.path)
-     // console.log(this.variables)
-
+    // console.log(_this.path)
+    // console.log(_this.variables)
   }
 
-  this.solve = function () {
+  _this.solve = function () {
     var m = 0
-    while (this.status === 'unknown' && m <= 3000000) {
-      this.next()
+    while (_this.status === 'unknown' && m <= 3000000) {
+      _this.next()
       m++
     }
   }
 
-  this.runPerformanceTest = function () {
-    this.reset()
+  _this.runPerformanceTest = function () {
+    _this.reset()
     var t0 = new Date().getTime()
-    this.solve()
+    _this.solve()
     var t1 = new Date().getTime()
 
-    console.log('H: ' + this.heuristic)
+    console.log('H: ' + _this.heuristic)
     console.log('time: ' + (t1 - t0) + ' milliseconds')
-    console.log('CC: ' + this.constraintsCompared)
-    console.log('NV: ' + this.nodesVisited)
-    console.log('BT: ' + this.backTracks)
-    console.log('Status: ' + this.status)
-    this.reset()
+    console.log('CC: ' + _this.constraintsCompared)
+    console.log('NV: ' + _this.nodesVisited)
+    console.log('BT: ' + _this.backTracks)
+    console.log('Status: ' + _this.status)
+    _this.reset()
   }
 
-  this.reset = function () {
-    this.variables = []
+  _this.runTestCSV = function () {
+    _this.reset()
+    var t0 = new Date().getTime()
+    _this.solve()
+    var t1 = new Date().getTime()
 
-    for (var i = 0; i < this.csp.variables.length + 1; i++) {
-      if (i !== 0) {
-        this.variables[i] = clone(this.csp.variables[i - 1])
-        this.variables[i].weight = this.csp.getNeighbors(this.variables[i]).length
-        this.variables[i].neighborColors = new Set()
-      } else {
-        this.variables[i] = undefined
-      }
-    }
-    this.consistent = true
-    this.checking = false
-    this.status = 'unknown'
-    this.index = 1
-    this.nodesVisited = 0
-    this.constraintsCompared = 0
-    this.backTracks = 0
-    this.path = new Array(this.variables.length)
+    console.log('' + _this.heuristic + ',' + (t1 - t0) + ',' + _this.constraintsCompared + ',' + _this.nodesVisited + ',' + _this.backTracks + ',' + _this.status)
+
+    _this.reset()
   }
 
-  this.getColors = function () {
+  _this.getColors = function () {
     var colorsResult = []
     for (var i = 0; i < _this.csp.variables.length; i++) {
       var index = _this.variables.findIndex(function (v) {
@@ -299,4 +267,6 @@ function Backtrack (csp, heuristic) {
     }
     return colorsResult
   }
+
+  _this.reset()
 }

@@ -64,6 +64,7 @@ function CSP (name, variables, constraints) {
   this.name = name
   this.variables = variables
   this.constraints = constraints
+
   this.getNeighbors = function (variable) {
     var result = []
     this.constraints.forEach(function (c) {
@@ -99,7 +100,7 @@ function CSP (name, variables, constraints) {
         id: this.variables[i].name
       }
     }
-    var links = [];
+    var links = []
     for (i = 0; i < this.constraints.length; i++) {
       links[i] = {
         id: this.constraints[i].name,
