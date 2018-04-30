@@ -3,7 +3,7 @@
  */
 
 var D3Network = require('vue-d3-network')
-// var CSPUTILS = require('../code/csp.js')
+// var CSPUTILS = require('../code/CSPUTILS.js')
 var Search = require('../code/search.js')
 var Network = require('../code/network.js')
 
@@ -67,7 +67,7 @@ var network2 =
        { id: 'C19', sid: 'V9', tid: 'V10', _color: 'slategray' } ] }
 
 var network3 = {
-  'domainValues':[0,1,2,3,4],
+  'domainValues': [0, 1, 2, 3, 4],
   'name': 'queens',
   'nodes':
     [

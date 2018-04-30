@@ -1,8 +1,14 @@
+/*
+* CSP Solver: tools to read xCSP files and convert them to CSPs
+* Updated: 4/27/18
+* By Kaleb Gaar
+*/
+
 module.exports = {
   createCSPFromFile: createCSPFromFile
 }
 
-var CSPUTILS = require('../code/csp.js')
+var CSPUTILS = require('../code/CSPUTILS.js')
 var fs = require('fs')
 var xml2js = require('xml2js')
 // var $ = require('jquery')

@@ -1,8 +1,14 @@
+/*
+* CSP Solver: search
+* Updated: 4/27/18
+* By Kaleb Gaar
+*/
+
 module.exports = {
   Backtrack: Backtrack
 }
 
-// const CSPUTILS = require('../code/csp.js')
+// const CSPUTILS = require('../code/CSPUTILS.js')
 
 var colors = {
   0: 'yellow',
@@ -33,10 +39,15 @@ function clone (obj) {
   throw new Error("This type isn't supported")
 }
 
-function Backtrack (csp, heuristic) {
+function Backtrack (csp, heuristic, searchAlgorithm) {
   var _this = this
   _this.csp = csp
-  _this.brelaz = false
+  if (typeof searchAlgorithm === 'string') {
+    _this.algo = searchAlgorithm
+  } else {
+    _this.algo = 'backTrack'
+  }
+
   if (typeof heuristic === 'string') {
     _this.heuristic = heuristic
   } else {
@@ -70,7 +81,7 @@ function Backtrack (csp, heuristic) {
       if (i !== 0) {
         _this.variables[i] = clone(_this.csp.variables[i - 1])
         _this.variables[i].weight = _this.csp.getNeighbors(_this.variables[i]).length
-        _this.variables[i].neighborColors = new Set()
+        _this.variables[i].neighborColors = []
         _this.variables[i].neighbors = []
       } else {
         _this.variables[i] = undefined
@@ -78,6 +89,9 @@ function Backtrack (csp, heuristic) {
     }
     _this.path = new Array(_this.variables.length)
     for (i = 1; i < _this.variables.length; i++) {
+      _this.variables[i].currentDomain.values.forEach(function (e) {
+        _this.variables[i].neighborColors[e] = 0
+      })
       _this.csp.getNeighbors(_this.variables[i]).forEach(function (e) {
         _this.variables[i].neighbors.push(_this.variables.find(
           function (f) {
@@ -125,8 +139,8 @@ function Backtrack (csp, heuristic) {
     } else if (_this.heuristic === 'blz') {
       var firstBlz = _this.variables.splice(_this.index, (_this.variables.length - _this.index))
         .sort(function (a, b) {
-          if (b.neighborColors.size - a.neighborColors.size !== 0) {
-            return b.neighborColors.size - a.neighborColors.size
+          if (_this.getColorSaturation(b) - _this.getColorSaturation(a) !== 0) {
+            return _this.getColorSaturation(b) - _this.getColorSaturation(a)
           } else if (b.neighbors.length - a.neighbors.length !== 0) {
             return b.neighbors.length - a.neighbors.length
           } else {
@@ -140,20 +154,32 @@ function Backtrack (csp, heuristic) {
     }
   }
 
+  _this.getColorSaturation = function (variable) {
+    var count = 0
+
+    variable.neighborColors.forEach(function (e) {
+      if (e !== 0) {
+        count++
+      }
+    })
+
+    return count
+  }
+
   _this.labelNeighbors = function (variable, value) {
     // console.log(this.variables)
     variable.neighbors.forEach(function (e) {
-      e.neighborColors.add(value)
+      e.neighborColors[value]++
     })
   }
 
   _this.unlabelNeighbors = function (variable, value) {
     variable.neighbors.forEach(function (e) {
-      e.neighborColors.delete(value)
+      e.neighborColors[value]++
     })
   }
 
-  _this.check = function () {
+  _this.label = function () {
     _this.consistent = true
 
     if (_this.path[_this.index] === '' || typeof _this.path[_this.index] === 'undefined') {
@@ -161,6 +187,12 @@ function Backtrack (csp, heuristic) {
     }
 
     _this.path[_this.index] = _this.variables[_this.index].currentDomain.values[0]
+
+    _this.labelNeighbors(_this.variables[_this.index], _this.path[_this.index])
+
+    if (_this.algorithm === 'FC') {
+      _this.checkWipeout(_this.index)
+    }
 
     for (var h = 1; h < _this.index && _this.consistent; h++) {
       if (_this.csp.hasEdge(_this.variables[_this.index], _this.variables[h]) && _this.path[_this.index] === _this.path[h]) {
@@ -175,11 +207,13 @@ function Backtrack (csp, heuristic) {
     }
 
     if (_this.consistent) {
-      _this.labelNeighbors(_this.variables[_this.index], _this.path[_this.index])
       _this.index = _this.index + 1
       _this.checking = false
-    } else if (_this.variables[_this.index].currentDomain.values.length === 0) {
-      _this.checking = false
+    } else {
+      _this.unlabelNeighbors(_this.variables[_this.index], _this.path[_this.index])
+      if (_this.variables[_this.index].currentDomain.values.length === 0) {
+        _this.checking = false
+      }
     }
   }
 
@@ -196,13 +230,13 @@ function Backtrack (csp, heuristic) {
               _this.getNextVariable()
             }
             _this.checking = true
-            _this.check()
+            _this.label()
           } else {
             _this.index = _this.unlabel(_this.index)
           }
         }
       } else {
-        _this.check()
+        _this.label()
       }
     }
     // console.log(_this.path)

@@ -1,3 +1,9 @@
+/*
+* CSP Solver: CSPUTILS
+* Updated: 4/27/18
+* By Kaleb Gaar
+*/
+
 module.exports = {
   CSP: CSP,
   Domain: Domain,

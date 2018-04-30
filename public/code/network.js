@@ -1,9 +1,15 @@
+/*
+* CSP Solver: Tools to convert CSPs to networks
+* Updated: 4/27/18
+* By Kaleb Gaar
+*/
+
 module.exports = {
   cspToNetwork: cspToNetwork,
   networkToCsp: networkToCsp
 }
 
-var CSPUTILS = require('../code/csp.js')
+var CSPUTILS = require('../code/CSPUTILS.js')
 
 /*
 * Note: These functions assumes all variables have the same domain.
