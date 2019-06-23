@@ -217,6 +217,10 @@ function Backtrack (csp, heuristic, searchAlgorithm) {
     }
   }
 
+  /* _this.checkWipeout = function (checkFrom) {
+    for (var i = checkFrom + 1;)
+  } */
+
   _this.next = function () {
     if (_this.status === 'unknown') {
       if (!_this.checking) {

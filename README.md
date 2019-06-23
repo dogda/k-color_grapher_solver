@@ -25,6 +25,8 @@ npm run runTest [.xcsp file] [(Optional) Heuristic String]
 
 By default, the test will run all four heuristics. You can specify the heuristic used by using a tag.
 
+***What are these***
+
  - 'lex'
  - 'deg'
  - 'wDeg'
@@ -32,7 +34,9 @@ By default, the test will run all four heuristics. You can specify the heuristic
 
 ## Webtool use
 
+Currently, the webtool is located in [public/html](./public/html) directory. By running the index.html file, you can access the webtool.
 
+***What about hosting it?***
 
 ## Libraries Used
 
@@ -42,7 +46,7 @@ By default, the test will run all four heuristics. You can specify the heuristic
 
  - [xml2js](https://www.npmjs.com/package/xml2js): for parsing XML to javascript objects
  - [vue-d3-network](https://www.npmjs.com/package/vue-d3-network): for visualizing networks using d3 and connecting it to vue
- 
+
 #### Globally Installed Packages
 
  - [http-server](https://www.npmjs.com/package/http-server): to locally host resources for use with tool
